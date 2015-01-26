@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+		<style>
+			select:hover{
+				cursor:pointer;
+			}
+			#select_county{
+				margin-left: 500px;
+				color:gray;
+			}
+			.hide{
+				display:none;
+			}
+		</style>
+	</head>
+	
+	<body>
+
+	
+	<div id='select_county'>
+		<form>
+			<h1>three-level linkage </h1>
+			<select id='provinces' name='province'><option value=''>请选择省</option></select>
+			<select id='cities' name='city'><option value=''>请选择市</option></select>
+			<select id='dists' name='dist'><option value=''>请选择县</option></select>	
+            <input id='province_county_dist' type='button' value='查询'/>
+	 	</form>
+        
+	</div>
+    <div id='server_list'>
+        
+    
+    </div>
+	<script type="text/javascript" src='/static/jquery-1.8.2.js'></script>
+	
+	<script type='text/javascript'>	
+		function select_province_city_district(){
+		  
+			$.getJSON('/app01/getRegion/', {province:'all',level:'province'}, function(regions){
+			 		
+                    $.each(regions, function(key,value){
+                
+                    row = "<option" + " value=" + key + ">" +  value + "</option>";
+                    //row = "<option>" +  value + "</option>";
+                    
+                    $("#provinces").append(row);
+                   
+			 	});	
+
+			});
+	
+			$('#provinces').change(function(){
+				if ($(this).attr('value') != ''){
+					$.getJSON('/app01/getRegion/', {province: $(this).attr('value'), level:'city'}, function(regions){               
+	                    $('#dists').removeClass("hide");
+						$('#cities').html("<option value=''>请选择市</option>");
+			            $('#dists').html("<option value=''>请选择县</option>"); 
+				   		$.each(regions, function(key,value){
+					  		//row = "<option>" +  value + "</option>"
+	                        row = "<option" + " value=" + key + ">" +  value + "</option>";
+					  		$("#cities").append(row);
+				  
+				 		 });
+					});
+			
+				}
+				else{
+						$('#dists').removeClass("hide");
+						$('#cities').html("<option value=''>请选择市</option>");
+			            $('#dists').html("<option value=''>请选择县</option>"); 
+				}
+			})
+			
+			$('#cities').change(function(){
+					$('#dists').html("<option value=''>请选择县</option>"); 
+					if ($(this).val() != ''){
+						$.getJSON('/app01/getRegion/', {city: $(this).val(), level:'dist'}, function(regions){
+						console.log(regions)
+				   		$.each(regions, function(key, value){	
+				   			if (value==0){
+				   				$('#dists').addClass("hide");
+				   				}
+				   			else{
+		                        //row = "<option>" +  value + "</option>"
+		                        $('#dists').removeClass("hide");
+		                        row = "<option" + " value=" + key + ">" +  value + "</option>";
+						  		$("#dists").append(row);
+					  		}
+				  
+				 		 });					
+	
+					});
+			
+			}})			
+		
+		
+			$('#province_county_dist').click(function(){
+				
+					$.getJSON('/app01/RegionInfo/', {province: $('#provinces').val()}, function(data){
+                            
+                        row = '<h1>' +  data + '</h1>'
+                        $('#server_list').append(row)
+                        
+				})			
+			})
+		}
+		$(function(){
+			select_province_city_district();	
+		});
+		
+		
+	</script>
+		
+	</body>
+</html>
